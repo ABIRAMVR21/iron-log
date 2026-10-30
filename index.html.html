@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Iron Log – Workout Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#ecedE8;--surface:#f8f8f5;--ink:#1c2024;--mute:#6b7076;--line:#d2d4cd;--accent:#2c47f0;--accent-ink:#fff;--danger:#b3261e;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171a;--surface:#1f2226;--ink:#eceee9;--mute:#9a9fa6;--line:#33373d;--accent:#7b8cff;--accent-ink:#10131a;--danger:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15171a;--surface:#1f2226;--ink:#eceee9;--mute:#9a9fa6;--line:#33373d;--accent:#7b8cff;--accent-ink:#10131a;--danger:#ff8a80;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+h1,h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;margin:0;letter-spacing:.01em}
+h1{font-size:2.2rem}
+h2{font-size:1.4rem}
+nav{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:20px}
+nav button{flex:1;background:none;border:0;padding:10px 4px;font:600 1rem Barlow,sans-serif;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+nav button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.85rem;color:var(--mute);margin-bottom:4px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:10px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{font:600 1rem Barlow,sans-serif;background:var(--accent);color:var(--accent-ink);border:0;border-radius:4px;padding:11px 16px;cursor:pointer;width:100%}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line);width:auto}
+.x{background:none;border:0;color:var(--mute);cursor:pointer;font-size:1.1rem;padding:4px 8px}
+.x:hover{color:var(--danger)}
+.set{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.set:first-of-type{border-top:0}
+.ex{margin:14px 0 2px;font-weight:600}
+.date{margin:24px 0 8px}
+.mute{color:var(--mute);font-size:.9rem}
+.stats{display:flex;gap:24px;margin:10px 0 14px}.stats b{display:block;font:700 1.7rem "Barlow Condensed",sans-serif}
+svg{width:100%;height:auto;display:block}
+.empty{padding:28px 8px;text-align:center;color:var(--mute)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:28px}
+.days{display:flex;gap:8px;margin-bottom:12px}
+.day{flex:1;font:700 1.2rem "Barlow Condensed",sans-serif;padding:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;cursor:pointer}
+.day[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.grp{font-weight:600;margin:12px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 .9rem Barlow,sans-serif;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);cursor:pointer}
+.chip[data-done]{border-color:var(--accent);color:var(--accent)}
+.calhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:14px}
+.wd{text-align:center;font-size:.8rem;color:var(--mute)}
+.cd{position:relative;aspect-ratio:1;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:4px;font:500 .95rem Barlow,sans-serif;cursor:pointer;padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.cd.t{font-weight:700;color:var(--accent)}
+.cd.sel{border:2px solid var(--accent);background:var(--surface)}
+.dots{display:flex;gap:2px;min-height:6px}.dots i{width:6px;height:6px;border-radius:50%;display:block}
+.star{position:absolute;top:0;right:3px;font-size:.75rem;color:#d9951a}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:.85rem;color:var(--mute)}.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+html:root:root{--bg:#f1f3f6;--surface:#fff;--surface2:#eef0f4;--ink:#0f1419;--mute:#667085;--line:#e1e5ea;--accent:#2563eb;--accent-ink:#fff}
+@media (prefers-color-scheme:dark){html:root:root:not([data-theme="light"]){--bg:#0b0d10;--surface:#14171c;--surface2:#1d2128;--ink:#f2f4f7;--mute:#8d95a3;--line:#262b33;--accent:#4d8bff;--accent-ink:#06101f}}
+main{padding:16px 16px 120px}
+header{align-items:flex-end;margin-bottom:18px}
+h1{font-size:2.1rem;line-height:1.1}
+#unit{border-radius:999px;padding:6px 16px;background:var(--surface);font-weight:700}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:20;gap:0;margin:0;border:0;border-top:1px solid var(--line);background:var(--surface);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+nav button{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;margin:0;padding:6px 2px;font:600 .72rem Barlow,sans-serif;border-radius:10px}
+nav button[aria-selected="true"]{color:var(--accent);border:0}
+nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.panel{border-radius:16px;padding:16px}
+input,select{background:var(--surface2);border:1px solid transparent;border-radius:10px;padding:12px;font-size:1.05rem}
+#w,#r{text-align:center;font:700 1.6rem "Barlow Condensed",sans-serif}
+.btn{border-radius:12px;padding:14px;font-size:1.05rem}
+.btn.ghost{background:transparent}
+.days{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.day{border:0;background:none;border-radius:9px;color:var(--mute)}
+.day[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.chip{background:var(--surface2);border-color:transparent;padding:8px 12px}
+.chip[data-done]{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--ink);border-color:var(--accent)}
+.chip.on{background:var(--accent);color:var(--accent-ink)}
+.ex{font:700 1.3rem "Barlow Condensed",sans-serif;margin:0 0 6px;color:var(--accent)}
+.set{display:grid;grid-template-columns:30px 1fr auto 32px;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.set .n{width:28px;height:28px;border-radius:8px;background:var(--surface2);display:grid;place-items:center;font-weight:600;font-size:.85rem;color:var(--mute)}
+.set .v b{font:700 1.35rem "Barlow Condensed",sans-serif}
+.set .e{color:var(--mute);font-size:.8rem}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.tile b{display:block;font:700 1.8rem/1.1 "Barlow Condensed",sans-serif}
+.tile span{font-size:.8rem;color:var(--mute)}
+.cd{border-radius:10px;border-color:transparent;background:var(--surface2)}
+.cd.sel{border-color:var(--accent)}
+.wk{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.wk .btn{width:auto;padding:12px 24px}
+.wk .rl{flex:1 1 100%}
+.clock{display:block;font:700 2.3rem/1.1 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}
+.rest{position:fixed;left:12px;right:12px;bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:19;display:flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:8px 12px;max-width:616px;margin:0 auto}
+.rest[hidden],.sum[hidden]{display:none}
+.rest b{flex:1;font:700 1.7rem "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums}
+.rest .x{color:inherit;border:1px solid currentColor;border-radius:8px;font-size:.85rem;padding:4px 8px}
+.rest.over{background:#1fa58b;color:#fff}
+.sum{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:90%;overflow:auto;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.tiles.two{grid-template-columns:repeat(2,1fr);margin-top:12px}
+</style>
+</head>
+<body>
+<main>
+<header><div><div class="mute" id="hd"></div><h1>Iron Log</h1></div><button class="btn ghost" id="unit" aria-label="Switch unit"></button></header>
+<nav role="tablist">
+<button role="tab" data-t="log"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>Workout</button>
+<button role="tab" data-t="hist"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>History</button>
+<button role="tab" data-t="cal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Calendar</button>
+<button role="tab" data-t="prog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5.5-5.5 4 4L21 7M15 7h6v6"/></svg>Progress</button>
+</nav>
+<div id="view"></div>
+<div class="tools">
+<button class="btn ghost" id="exp">Export backup</button>
+<button class="btn ghost" id="imp">Import backup</button>
+<input type="file" id="file" accept="application/json" hidden>
+</div>
+<p class="mute">Your data is saved in this browser only. Export a backup now and then.</p>
+</main>
+<div id="rest" class="rest" hidden><span>Rest</span><b id="rt">0:00</b><button class="x" data-rest="-15">−15s</button><button class="x" data-rest="15">+15s</button><button class="x" data-rest="0">Skip</button></div>
+<div id="sum" class="sum" hidden></div>
+<script>
+const $=s=>document.querySelector(s);
+let sets=[],unit='kg',tab='log',pick='',day='push',wStart=0,restLen=90,restEnd=0,restDone=0,sess=[];
+try{sets=JSON.parse(localStorage.getItem('ironlog:sets')||'[]');unit=localStorage.getItem('ironlog:unit')||'kg';day=localStorage.getItem('ironlog:day')||'push';wStart=+localStorage.getItem('ironlog:start')||0;restLen=+localStorage.getItem('ironlog:rest')||90;sess=JSON.parse(localStorage.getItem('ironlog:sess')||'[]');if(Date.now()-wStart>432e5)wStart=0}catch(e){}
+const save=()=>{try{localStorage.setItem('ironlog:sets',JSON.stringify(sets));localStorage.setItem('ironlog:unit',unit);localStorage.setItem('ironlog:day',day);localStorage.setItem('ironlog:start',wStart||'');localStorage.setItem('ironlog:rest',restLen);localStorage.setItem('ironlog:sess',JSON.stringify(sess))}catch(e){}};
+const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const fmtDate=d=>new Date(d+'T00:00').toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const names=()=>[...new Set(sets.map(s=>s.ex))].sort();
+const e1rm=s=>s.r===1?s.w:s.w*(1+s.r/30);
+const DAYS={push:'Push',pull:'Pull',legs:'Legs'};
+const COL={push:'#4f6bff',pull:'#1fa58b',legs:'#d9951a'};
+const fmtT=s=>{s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),c=s%60,p=n=>String(n).padStart(2,'0');return h?h+':'+p(m)+':'+p(c):m+':'+p(c)};
+const dateOf=t=>new Date(t-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.15;o.start();o.stop(a.currentTime+.35)}catch(e){}try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
+function startRest(){restEnd=Date.now()+restLen*1000;restDone=0;tick()}
+function tick(){
+  const el=$('#wt');if(el)el.textContent=wStart?fmtT((Date.now()-wStart)/1000):'0:00';
+  const r=$('#rest');if(!r)return;
+  if(!restEnd){r.hidden=true;return}
+  const left=Math.ceil((restEnd-Date.now())/1000);
+  if(left>0){r.hidden=false;r.classList.remove('over');$('#rt').textContent=fmtT(left)}
+  else if(left>-4){if(!restDone){restDone=1;beep()}r.hidden=false;r.classList.add('over');$('#rt').textContent='Go!'}
+  else{restEnd=0;r.hidden=true}
+}
+setInterval(tick,1000);
+function showSum(){
+  const d=wStart?dateOf(wStart):today(),ss=sets.filter(s=>s.date===d),by={};
+  ss.forEach(s=>(by[s.ex]=by[s.ex]||[]).push(s));
+  const vol=Math.round(ss.reduce((a,s)=>a+s.w*s.r,0)),prs=prMap()[d]||[],dur=wStart?(Date.now()-wStart)/1000:0;
+  $('#sum').innerHTML=`<div class="sheet"><h2>Workout summary</h2><div class="tiles two"><div class="tile"><b>${fmtT(dur)}</b><span>Time</span></div><div class="tile"><b>${Object.keys(by).length}</b><span>Exercises</span></div><div class="tile"><b>${ss.length}</b><span>Sets</span></div><div class="tile"><b>${vol.toLocaleString()}</b><span>Volume (${unit})</span></div></div>
+  ${prs.length?`<div class="ex">New bests</div>${prs.map(p=>`<div class="set"><span class="n">★</span><span class="v">${esc(p.ex)}</span><span class="e">e1RM ${Math.round(p.v)} ${unit}</span><span></span></div>`).join('')}`:''}
+  ${ss.length?`<div class="ex" style="margin-top:14px">Exercises</div>${Object.entries(by).map(([ex,l])=>{const t=l.reduce((a,b)=>e1rm(b)>e1rm(a)?b:a);return `<div class="set"><span class="n">${l.length}</span><span class="v">${esc(ex)}</span><span class="e">Best ${t.w} × ${t.r}</span><span></span></div>`}).join('')}`:'<div class="empty">No sets logged for this workout.</div>'}
+  <button class="btn" id="done" style="margin-top:16px">Save and finish</button><button class="btn ghost" id="keep" style="width:100%;margin-top:8px">Keep training</button></div>`;
+  $('#sum').hidden=false;
+}
+function finish(){
+  if(wStart)sess.push({date:dateOf(wStart),dur:Math.max(1,Math.round((Date.now()-wStart)/6e4))});
+  wStart=0;restEnd=0;save();$('#sum').hidden=true;render();tick();
+}
+let calM=today().slice(0,7),calSel='';
+const ym=(y,m)=>{const d=new Date(y,m,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+
+function prMap(){
+  const sorted=[...sets].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0),best={},out={};
+  [...new Set(sorted.map(s=>s.date))].forEach(d=>{
+    const db={};
+    sorted.filter(s=>s.date===d).forEach(s=>{db[s.ex]=Math.max(db[s.ex]||0,e1rm(s))});
+    Object.entries(db).forEach(([ex,v])=>{
+      if(best[ex]!==undefined&&v>best[ex]+0.01)(out[d]=out[d]||[]).push({ex,v});
+      best[ex]=Math.max(best[ex]||0,v);
+    });
+  });
+  return out;
+}
+
+function calView(){
+  const [Y,M]=calM.split('-').map(Number),first=new Date(Y,M-1,1),dim=new Date(Y,M,0).getDate(),lead=(first.getDay()+6)%7;
+  const prs=prMap(),td=today(),sel=calSel==='-'?'':calSel||(calM===td.slice(0,7)?td:'');
+  const vol=k=>Math.round(sets.filter(s=>s.date.startsWith(k)).reduce((a,s)=>a+s.w*s.r,0));
+  const v1=vol(calM),v0=vol(ym(Y,M-2)),pct=v0?Math.round((v1-v0)/v0*100):0;
+  const trained=new Set(sets.filter(s=>s.date.startsWith(calM)).map(s=>s.date)).size;
+  const recs=Object.keys(prs).filter(d=>d.startsWith(calM)).reduce((a,d)=>a+prs[d].length,0);
+  let cells=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(w=>`<div class="wd">${w}</div>`).join('')+'<div></div>'.repeat(lead);
+  for(let i=1;i<=dim;i++){
+    const ds=calM+'-'+String(i).padStart(2,'0'),ss=sets.filter(s=>s.date===ds),types=[...new Set(ss.map(s=>s.day||''))];
+    cells+=`<button class="cd${ds===td?' t':''}${ds===sel?' sel':''}" data-date="${ds}" aria-label="${fmtDate(ds)}${ss.length?', '+ss.length+' sets':''}${prs[ds]?', new personal best':''}">${i}<span class="dots">${types.map(t=>`<i style="background:${COL[t]||'var(--mute)'}"></i>`).join('')}</span>${prs[ds]?'<span class="star">★</span>':''}</button>`;
+  }
+  let detail='';
+  if(sel){
+    const ss=sets.filter(s=>s.date===sel),by={},pr=(prs[sel]||[]).map(p=>p.ex);
+    ss.forEach(s=>(by[s.ex]=by[s.ex]||[]).push(s));
+    detail=`<h2 class="date">${fmtDate(sel)}</h2>`+(ss.length?Object.entries(by).map(([ex,l])=>`<div class="ex">${esc(ex)}${pr.includes(ex)?' <span style="color:#d9951a">★ new best</span>':''}</div><div class="mute">${l.map(s=>s.w+' '+unit+' × '+s.r).join(' · ')}</div>`).join(''):'<div class="empty">Rest day. No sets logged.</div>');
+  }
+  return `<div class="calhead"><button class="btn ghost" data-cal="-1" aria-label="Previous month">‹</button><h2>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h2><button class="btn ghost" data-cal="1" aria-label="Next month">›</button></div>
+  <div class="panel"><div class="stats" style="margin-top:0"><div><b>${trained}</b><span class="mute">Days trained</span></div><div><b>${recs}</b><span class="mute">New bests</span></div><div><b>${v0?(pct>0?'+':'')+pct+'%':'–'}</b><span class="mute">Volume vs last month</span></div></div>
+  <div class="cal">${cells}</div>
+  <div class="legend">${Object.entries(DAYS).map(([k,v])=>`<span><i style="background:${COL[k]}"></i>${v}</span>`).join('')}<span><span style="color:#d9951a">★</span> New personal best</span></div></div>${detail}`;
+}
+
+function chart2(pts){
+  if(pts.length<2)return '<div class="empty">Log this exercise on at least two different days to see your trend and projection.</div>';
+  const W=600,H=240,p=36,DAY=864e5,n=pts.length;
+  const xs=pts.map(q=>+new Date(q.d+'T00:00')),ys=pts.map(q=>q.v);
+  const mx=xs.reduce((a,b)=>a+b)/n,my=ys.reduce((a,b)=>a+b)/n;
+  let sxx=0,sxy=0;xs.forEach((x,i)=>{sxx+=(x-mx)**2;sxy+=(x-mx)*(ys[i]-my)});
+  const m=sxx?sxy/sxx:0,f=x=>my+m*(x-mx),x0=xs[0],xe=xs[n-1]+28*DAY;
+  const lo=Math.min(...ys,f(x0),f(xe))*.95,hi=Math.max(...ys,f(x0),f(xe))*1.05;
+  const X=v=>p+(v-x0)/(xe-x0)*(W-2*p),Y=v=>H-p-(hi===lo?0:(v-lo)/(hi-lo))*(H-2*p);
+  const perMonth=m*30*DAY,proj=f(xe);
+  let top=-1;const rec=pts.map(q=>{const r=top>=0&&q.v>top;top=Math.max(top,q.v);return r});
+  const line=pts.map((q,i)=>`${i?'L':'M'}${X(xs[i]).toFixed(1)},${Y(q.v).toFixed(1)}`).join('');
+  return `<div class="stats"><div><b>${perMonth>=0?'+':''}${perMonth.toFixed(1)} ${unit}</b><span class="mute">Trend per month</span></div><div><b>${Math.round(proj)} ${unit}</b><span class="mute">Estimated in 4 weeks</span></div></div>
+  <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Estimated one-rep max with trend line and 4-week projection">
+  <line x1="${p}" y1="${H-p}" x2="${W-p}" y2="${H-p}" stroke="var(--line)"/>
+  <text x="${p}" y="16" fill="var(--mute)" font-size="13">${Math.round(hi)} ${unit}</text>
+  <text x="${p}" y="${H-10}" fill="var(--mute)" font-size="13">${pts[0].d}</text>
+  <text x="${W-p}" y="${H-10}" fill="var(--mute)" font-size="13" text-anchor="end">in 4 weeks</text>
+  <line x1="${X(x0)}" y1="${Y(f(x0))}" x2="${X(xe)}" y2="${Y(f(xe))}" stroke="var(--mute)" stroke-width="2" stroke-dasharray="6 5"/>
+  <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round"/>
+  ${pts.map((q,i)=>`<circle cx="${X(xs[i])}" cy="${Y(q.v)}" r="4" fill="var(--accent)"/>${rec[i]?`<circle cx="${X(xs[i])}" cy="${Y(q.v)}" r="9" fill="none" stroke="var(--accent)" stroke-width="2"/>`:''}`).join('')}
+  <circle cx="${X(xe)}" cy="${Y(f(xe))}" r="6" fill="var(--surface)" stroke="var(--mute)" stroke-width="2"/></svg>
+  <p class="mute" style="margin:10px 0 0">Solid line: your best estimated 1-rep max each day. Ringed dots: new bests. Dashed line: a straight-line estimate from your logged sessions, so treat it as a guide rather than a promise.</p>`;
+}
+const LIB={
+push:{'Chest':['Barbell Bench Press','Incline Barbell Press','Dumbbell Bench Press','Incline Dumbbell Press','Machine Chest Press','Cable Fly','Pec Deck','Push-up','Chest Dips'],
+'Shoulders':['Overhead Press','Dumbbell Shoulder Press','Arnold Press','Lateral Raise','Cable Lateral Raise','Front Raise'],
+'Triceps':['Triceps Pushdown','Overhead Triceps Extension','Skull Crushers','Close-Grip Bench Press','Triceps Dips']},
+pull:{'Back':['Deadlift','Pull-up','Lat Pulldown','Barbell Row','Seated Cable Row','One-Arm Dumbbell Row','T-Bar Row','Chest-Supported Row','Straight-Arm Pulldown'],
+'Rear delts & traps':['Face Pull','Rear Delt Fly','Barbell Shrug','Dumbbell Shrug'],
+'Biceps':['Barbell Curl','Dumbbell Curl','Hammer Curl','Incline Dumbbell Curl','Preacher Curl','Cable Curl']},
+legs:{'Quads':['Back Squat','Front Squat','Leg Press','Hack Squat','Bulgarian Split Squat','Walking Lunge','Leg Extension'],
+'Hamstrings & glutes':['Romanian Deadlift','Lying Leg Curl','Seated Leg Curl','Hip Thrust','Good Morning','Cable Pull-Through'],
+'Calves & core':['Standing Calf Raise','Seated Calf Raise','Hanging Leg Raise','Cable Crunch','Ab Wheel']}};
+const allNames=()=>[...new Set([...Object.values(LIB).flatMap(g=>Object.values(g).flat()),...names()])].sort();
+let draft={ex:'',w:'',r:'',date:today()};
+
+function setRow(s,i){return `<div class="set"><span class="n">${i+1}</span><span class="v"><b>${s.w}</b> ${unit} × <b>${s.r}</b></span><span class="e">e1RM ${Math.round(e1rm(s))}</span><button class="x" data-del="${s.id}" aria-label="Delete set">✕</button></div>`}
+
+function logView(){
+  const todays=sets.filter(s=>s.date===today());
+  const byEx={};todays.forEach(s=>(byEx[s.ex]=byEx[s.ex]||[]).push(s));
+  const done={};todays.forEach(s=>done[s.ex]=(done[s.ex]||0)+1);
+  return `<div class="panel wk">${wStart?`<div><div class="mute">Workout in progress</div><b id="wt" class="clock">${fmtT((Date.now()-wStart)/1000)}</b></div><button class="btn" id="fin">Finish</button>`:`<div><div class="mute">Ready when you are</div><b class="clock">${DAYS[day]} day</b></div><button class="btn" id="start">Start workout</button>`}<div class="rl"><label for="rl">Rest timer after each set</label><select id="rl">${[30,45,60,90,120,180,240].map(v=>`<option value="${v}"${v===restLen?' selected':''}>${v<60?v+' sec':v/60+' min'}</option>`).join('')}</select></div></div>
+  <div class="days" role="group" aria-label="Workout day">${Object.entries(DAYS).map(([k,v])=>`<button class="day" data-day="${k}" aria-pressed="${k===day}">${v}</button>`).join('')}</div>
+  <div class="panel"><div class="mute">Tap an exercise to log it. Sets done today are counted.</div>${Object.entries(LIB[day]).map(([g,l])=>`<div class="grp">${g}</div><div class="chips">${l.map(x=>`<button class="chip${draft.ex===x?' on':''}" data-pick="${esc(x)}"${done[x]?' data-done':''}>${esc(x)}${done[x]?' · '+done[x]:''}</button>`).join('')}</div>`).join('')}</div>
+  <div class="panel">
+    <div style="margin-bottom:12px"><label for="ex">Exercise</label><input id="ex" list="exl" placeholder="Bench press" value="${esc(draft.ex)}" autocomplete="off"><datalist id="exl">${allNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div>
+    <div class="row" style="margin-bottom:12px"><div><label for="w">Weight (${unit})</label><input id="w" type="number" inputmode="decimal" min="0" step="0.5" value="${draft.w}"></div>
+    <div><label for="r">Reps</label><input id="r" type="number" inputmode="numeric" min="1" step="1" value="${draft.r}"></div></div>
+    <button class="btn" id="add">Add set</button></div>
+  <h2 style="margin:4px 0 10px">Today</h2><div class="tiles"><div class="tile"><b>${Object.keys(byEx).length}</b><span>Exercises</span></div><div class="tile"><b>${todays.length}</b><span>Sets</span></div><div class="tile"><b>${Math.round(todays.reduce((a,s)=>a+s.w*s.r,0)).toLocaleString()}</b><span>Volume (${unit})</span></div></div>
+  ${todays.length?Object.entries(byEx).map(([ex,ss])=>`<div class="panel"><div class="ex">${esc(ex)}</div>${ss.map(setRow).join('')}</div>`).join(''):'<div class="empty">No sets yet today. Enter an exercise, weight and reps above.</div>'}`;
+}
+
+function histView(){
+  if(!sets.length)return '<div class="empty">Nothing logged yet. Your past workouts will appear here.</div>';
+  const dates=[...new Set(sets.map(s=>s.date))].sort().reverse();
+  return dates.map(d=>{
+    const ds=sets.filter(s=>s.date===d),byEx={};ds.forEach(s=>(byEx[s.ex]=byEx[s.ex]||[]).push(s));
+    const vol=ds.reduce((a,s)=>a+s.w*s.r,0);
+    return `<h2 class="date">${fmtDate(d)}</h2><div class="mute">${[...new Set(ds.map(s=>DAYS[s.day]).filter(Boolean))].map(x=>x+' · ').join('')}${(sess.find(x=>x.date===d)||{}).dur?sess.find(x=>x.date===d).dur+' min · ':''}${ds.length} sets · ${Math.round(vol).toLocaleString()} ${unit} total volume</div><div class="panel" style="margin-top:8px">${Object.entries(byEx).map(([ex,ss])=>`<div class="ex">${esc(ex)}</div>${ss.map(setRow).join('')}`).join('')}</div>`;
+  }).join('');
+}
+
+function chart(pts){
+  if(pts.length<2)return '<div class="empty">Log this exercise on at least two different days to see a trend.</div>';
+  const W=600,H=220,p=34,xs=pts.map(q=>+new Date(q.d)),ys=pts.map(q=>q.v);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys)*.95,y1=Math.max(...ys)*1.05;
+  const X=v=>p+(x1===x0?0:(v-x0)/(x1-x0))*(W-2*p),Y=v=>H-p-(y1===y0?0:(v-y0)/(y1-y0))*(H-2*p);
+  const path=pts.map((q,i)=>`${i?'L':'M'}${X(+new Date(q.d)).toFixed(1)},${Y(q.v).toFixed(1)}`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Estimated one-rep max over time">
+  <line x1="${p}" y1="${H-p}" x2="${W-p}" y2="${H-p}" stroke="var(--line)"/>
+  <text x="${p}" y="16" fill="var(--mute)" font-size="13">${Math.round(y1)} ${unit}</text>
+  <text x="${p}" y="${H-10}" fill="var(--mute)" font-size="13">${pts[0].d}</text>
+  <text x="${W-p}" y="${H-10}" fill="var(--mute)" font-size="13" text-anchor="end">${pts[pts.length-1].d}</text>
+  <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round"/>
+  ${pts.map(q=>`<circle cx="${X(+new Date(q.d))}" cy="${Y(q.v)}" r="4" fill="var(--accent)"/>`).join('')}</svg>`;
+}
+
+function progView(){
+  const n=names();
+  if(!n.length)return '<div class="empty">Log a few workouts first, then track your strength here.</div>';
+  if(!n.includes(pick))pick=n[0];
+  const ss=sets.filter(s=>s.ex===pick);
+  const byD={};ss.forEach(s=>{byD[s.date]=Math.max(byD[s.date]||0,e1rm(s))});
+  const pts=Object.keys(byD).sort().map(d=>({d,v:byD[d]}));
+  const heavy=Math.max(...ss.map(s=>s.w));
+  return `<label for="pk">Exercise</label><select id="pk" style="margin-bottom:12px">${n.map(x=>`<option ${x===pick?'selected':''}>${esc(x)}</option>`).join('')}</select>
+  <div class="panel"><div class="stats"><div><b>${heavy} ${unit}</b><span class="mute">Heaviest set</span></div>
+  <div><b>${Math.round(pts[pts.length-1].v)} ${unit}</b><span class="mute">Latest est. 1-rep max</span></div>
+  <div><b>${ss.length}</b><span class="mute">Total sets</span></div></div>${chart2(pts)}</div>`;
+}
+
+function render(){
+  document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===tab));
+  $('#unit').textContent=unit.toUpperCase();$('#hd').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
+  $('#view').innerHTML=tab==='log'?logView():tab==='hist'?histView():tab==='cal'?calView():progView();
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.t){tab=t.dataset.t;render()}
+  else if(t.dataset.day){day=t.dataset.day;save();render()}
+  else if(t.dataset.cal){const [y,m]=calM.split('-').map(Number);calM=ym(y,m-1+(+t.dataset.cal));calSel='';render()}
+  else if(t.dataset.date){calSel=(calSel||(calM===today().slice(0,7)?today():''))===t.dataset.date?'-':t.dataset.date;render()}
+  else if(t.dataset.pick){const x=t.dataset.pick,l=[...sets].reverse().find(s=>s.ex===x);draft={ex:x,w:l?l.w:'',r:l?l.r:'',date:today()};render();$('#w').focus()}
+  else if(t.dataset.del){sets=sets.filter(s=>s.id!==t.dataset.del);save();render()}
+  else if(t.id==='unit'){unit=unit==='kg'?'lb':'kg';save();render()}
+  else if(t.id==='start'){wStart=Date.now();save();render();tick()}
+  else if(t.id==='fin')showSum();
+  else if(t.id==='keep')$('#sum').hidden=true;
+  else if(t.id==='done')finish();
+  else if(t.dataset.rest!==undefined){const v=+t.dataset.rest;if(!v)restEnd=0;else restEnd=Math.max(Date.now()+1000,restEnd+v*1000);restDone=0;tick()}
+  else if(t.id==='add'){
+    const ex=$('#ex').value.trim(),w=parseFloat($('#w').value),r=parseInt($('#r').value,10);
+    if(!ex||isNaN(w)||!(r>0)){alert('Enter an exercise, a weight and the number of reps.');return}
+    sets.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),date:today(),day,ex,w,r});
+    draft={ex,w:'',r:'',date:today()};if(!wStart)wStart=Date.now();save();render();startRest();$('#w').focus();
+  }
+  else if(t.id==='exp'){
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(sets,null,1)],{type:'application/json'}));
+    a.download='iron-log-'+today()+'.json';a.click();
+  }
+  else if(t.id==='imp')$('#file').click();
+});
+document.addEventListener('input',e=>{if(e.target.id==='ex')draft.ex=e.target.value;if(e.target.id==='w')draft.w=e.target.value;if(e.target.id==='r')draft.r=e.target.value});
+document.addEventListener('change',e=>{if(e.target.id==='rl'){restLen=+e.target.value;save()}if(e.target.id==='pk'){pick=e.target.value;render()}});
+$('#file').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  f.text().then(t=>{
+    const d=JSON.parse(t);if(!Array.isArray(d))throw 0;
+    const have=new Set(sets.map(s=>s.id));
+    d.filter(s=>s&&s.id&&s.ex&&!have.has(s.id)).forEach(s=>sets.push(s));
+    save();render();alert('Backup imported.');
+  }).catch(()=>alert('That file isn’t a valid Iron Log backup.'));
+  e.target.value='';
+});
+render();
+</script>
+</body>
+</html>
